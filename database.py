@@ -2,15 +2,14 @@ import os
 import psycopg2
 
 class Database:
-    connection = psycopg2.connect(
-        host = os.environ.get("DATABASE_HOST"),
-        port = os.environ.get("DATABASE_PORT"),
-        user = os.environ.get("DATABASE_USER"),
-        password = os.environ.get("DATABASE_PASSWORD"),
-        database= os.environ.get("DATABASE")
-    )   
-    
-    cursor = connection.cursor()
+    def __init__(self):
+        self.connection = psycopg2.connect(
+            host = os.environ.get("DATABASE_HOST"),
+            port = os.environ.get("DATABASE_PORT"),
+            user = os.environ.get("DATABASE_USER"),
+            password = os.environ.get("DATABASE_PASSWORD"),
+            database= os.environ.get("DATABASE")
+        )
 
     def create_tables(self):
         commands = (
@@ -98,8 +97,9 @@ class Database:
 
         try:
             for command in commands:
-                self.cursor.execute(command)
-                self.cursor.close()
+                cursor = self.connection.cursor()
+                cursor.execute(command)
+                cursor.close()
                 self.connection.commit()
         except (Exception, psycopg2.DatabaseError) as error:
-            print(error)
+            print('erro:', error)

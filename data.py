@@ -4,7 +4,7 @@ from constants import positions_dict, positions_id_dict, leagues_dict, leagues
 import pandas.io.sql as psql
 
 def populate_countries_table(database):
-    countries_df = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/countries.txt")
+    countries_df = pd.read_csv("./datasets/countries.txt")
     countries_df = countries_df.drop(['alpha-2', 'country-code', 'iso_3166-2', 'region-code', 'sub-region-code', 'intermediate-region-code'], axis=1)
     countries_df.rename(columns={'alpha-3': 'alpha_3_code', 'sub-region': 'sub_region', 'intermediate-region': 'intermediate_region'}, inplace=True)
 
@@ -12,24 +12,24 @@ def populate_countries_table(database):
 
 def populate_positions_table(database):
     # Seeding positions table
-    data_2018_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2018/2018-std.txt")
+    data_2018_std = pd.read_csv("./datasets/2018/2018-std.txt")
     data_2018_std = data_2018_std.filter(['Pos'])
     data_2018_std.drop_duplicates(subset=['Pos'], inplace=True)
 
-    data_2019_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2019/2019-std.txt")
+    data_2019_std = pd.read_csv("./datasets/2019/2019-std.txt")
     data_2019_std = data_2019_std.filter(['Pos'])
     data_2019_std.drop_duplicates(subset=['Pos'], inplace=True)
     data_2019_std
 
-    data_2020_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2020/2020-std.txt")
+    data_2020_std = pd.read_csv("./datasets/2020/2020-std.txt")
     data_2020_std = data_2020_std.filter(['Pos'])
     data_2020_std.drop_duplicates(subset=['Pos'], inplace=True)
 
-    data_2021_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2021/2021-std.txt")
+    data_2021_std = pd.read_csv("./datasets/2021/2021-std.txt")
     data_2021_std = data_2021_std.filter(['Pos'])
     data_2021_std.drop_duplicates(subset=['Pos'], inplace=True)
 
-    data_2022_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2022/2022-std.txt")
+    data_2022_std = pd.read_csv("./datasets/2022/2022-std.txt")
     data_2022_std = data_2022_std.filter(['Pos'])
     data_2022_std.drop_duplicates(subset=['Pos'], inplace=True)
 
@@ -52,6 +52,7 @@ def get_country_id(database, country_name):
     select_stmt = f"select * from countries where name LIKE '%{country_name}%'"
     query = psql.read_sql_query(select_stmt, database.connection)
 
+    print(query)
     return query['id'].values[0]
 
 def search_player(database, name, birth_year, country_id):
@@ -74,12 +75,12 @@ def search_team(database, name):
         query = psql.read_sql_query(select_stmt, database.connection)
     return query['id'].values[0]
 
-def add_player_id_column(players_df):
-    players_df['player_id'] = players_df.apply(lambda x: search_player(x['Player'], x['Born'], x['country_id']), axis=1)
+def add_player_id_column(database, players_df):
+    players_df['player_id'] = players_df.apply(lambda x: search_player(database, x['Player'], x['Born'], x['country_id']), axis=1)
     return players_df
 
-def add_team_id_column(players_df):
-    players_df['team_id'] = players_df.apply(lambda x: search_team(x['Squad']), axis=1)
+def add_team_id_column(database, players_df):
+    players_df['team_id'] = players_df.apply(lambda x: search_team(database, x['Squad']), axis=1)
     return players_df
 
 def search_position(database, name):
@@ -99,28 +100,28 @@ def insert_player_position(database, player_id, team_id, year, positions):
     cursor.close()
 
 def populate_players_data(database):
-    data_2018_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2018/2018-std.txt")
-    data_2018_player = add_country_id_column(data_2018_std)
+    data_2018_std = pd.read_csv("./datasets/2018/2018-std.txt")
+    data_2018_player = add_country_id_column(database, data_2018_std)
     data_2018_player.rename(columns={'Player': 'name', 'Born': 'birth_year'}, inplace=True)
     data_2018_player  = data_2018_player[['name', 'birth_year', 'country_id']]
 
-    data_2019_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2019/2019-std.txt")
-    data_2019_player = add_country_id_column(data_2019_std)
+    data_2019_std = pd.read_csv("./datasets/2019/2019-std.txt")
+    data_2019_player = add_country_id_column(database, data_2019_std)
     data_2019_player.rename(columns={'Player': 'name', 'Born': 'birth_year'}, inplace=True)
     data_2019_player = data_2019_player[['name', 'birth_year', 'country_id']]
 
-    data_2020_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2020/2020-std.txt")
-    data_2020_player = add_country_id_column(data_2020_std)
+    data_2020_std = pd.read_csv("./datasets/2020/2020-std.txt")
+    data_2020_player = add_country_id_column(database, data_2020_std)
     data_2020_player.rename(columns={'Player': 'name', 'Born': 'birth_year'}, inplace=True)
     data_2020_player = data_2020_player[['name', 'birth_year', 'country_id']]
 
-    data_2021_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2021/2021-std.txt")
-    data_2021_player = add_country_id_column(data_2021_std)
+    data_2021_std = pd.read_csv("./datasets/2021/2021-std.txt")
+    data_2021_player = add_country_id_column(database, data_2021_std)
     data_2021_player.rename(columns={'Player': 'name', 'Born': 'birth_year'}, inplace=True)
     data_2021_player = data_2021_player[['name', 'birth_year', 'country_id']]
 
-    data_2022_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2022/2022-std.txt")
-    data_2022_player = add_country_id_column(data_2022_std)
+    data_2022_std = pd.read_csv("./datasets/2022/2022-std.txt")
+    data_2022_player = add_country_id_column(database, data_2022_std)
     data_2022_player.rename(columns={'Player': 'name', 'Born': 'birth_year'}, inplace=True)
     data_2022_player = data_2022_player[['name', 'birth_year', 'country_id']]
 
@@ -133,7 +134,7 @@ def populate_players_data(database):
 
 def get_leagues_obj(database):
     leagues_obj = { 
-        'name': leagues.name,
+        'name': leagues['name'],
         'country_id': []
     }
 
@@ -149,13 +150,13 @@ def get_leagues_dataframe(database):
 
 def populate_leagues_data(database):
     leagues_df =get_leagues_dataframe(database)
-    insert_dataframe_values_to_table(leagues_df, "leagues")
+    insert_dataframe_values_to_table(database, leagues_df, "leagues")
 
-    data_2018_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2018/2018-std.txt")
-    data_2019_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2019/2019-std.txt")
-    data_2020_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2020/2020-std.txt")
-    data_2021_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2021/2021-std.txt")
-    data_2022_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2022/2022-std.txt")
+    data_2018_std = pd.read_csv("./datasets/2018/2018-std.txt")
+    data_2019_std = pd.read_csv("./datasets/2019/2019-std.txt")
+    data_2020_std = pd.read_csv("./datasets/2020/2020-std.txt")
+    data_2021_std = pd.read_csv("./datasets/2021/2021-std.txt")
+    data_2022_std = pd.read_csv("./datasets/2022/2022-std.txt")
     all_teams = pd.concat([data_2018_std, data_2019_std, data_2020_std, data_2021_std, data_2022_std], ignore_index = True)
     all_teams = all_teams.filter(['Squad', 'Comp'])
     all_teams.drop_duplicates(subset=['Squad', 'Comp'], inplace=True, ignore_index=True)
@@ -165,15 +166,15 @@ def populate_leagues_data(database):
     insert_dataframe_values_to_table(database, all_teams, 'teams')
 
 def populate_2018_stats(database):
-    data_2018_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2018/2018-std.txt")
-    data_2018_std = add_country_id_column(data_2018_std)
-    data_2018_std_with_player_id = add_player_id_column(data_2018_std)
-    data_2018_std_with_team_id = add_team_id_column(data_2018_std_with_player_id)
+    data_2018_std = pd.read_csv("./datasets/2018/2018-std.txt")
+    data_2018_std = add_country_id_column(database, data_2018_std)
+    data_2018_std_with_player_id = add_player_id_column(database, data_2018_std)
+    data_2018_std_with_team_id = add_team_id_column(database, data_2018_std_with_player_id)
     data_2018_std_with_team_id['year'] = 2018
 
     data_2018_players_seasons = data_2018_std_with_team_id.filter(['player_id', 'team_id', 'year'])
     # Insert player season
-    insert_dataframe_values_to_table(data_2018_players_seasons, 'players_seasons')
+    insert_dataframe_values_to_table(database, data_2018_players_seasons, 'players_seasons')
 
     data_2018_std['positions'] = data_2018_std_with_team_id['Pos'].map(positions_dict)
 
@@ -189,7 +190,7 @@ def populate_2018_stats(database):
                                 'CrdY': 'yellow_cards',
                                 'CrdR': 'red_cards'}, inplace=True)
 
-    data_2018_def = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2018/2018-def.txt")
+    data_2018_def = pd.read_csv("./datasets/2018/2018-def.txt")
     data_2018_def = data_2018_def.filter(['Att 3rd', 'Mid 3rd', 'Def 3rd', 'Blocks', 'Int'])
     data_2018_def.rename(columns={'Att 3rd': 'offensive_tackles', 
                                 'Mid 3rd': 'midfield_tackles',
@@ -197,16 +198,16 @@ def populate_2018_stats(database):
                                 'Blocks': 'blocks',
                                 'Int': 'interceptions'}, inplace=True)
 
-    data_2018_gca = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2018/2018-gca.txt")
+    data_2018_gca = pd.read_csv("./datasets/2018/2018-gca.txt")
     data_2018_gca = data_2018_gca.filter(['SCA', 'GCA'])
     data_2018_gca.rename(columns={'SCA': 'shot_creating_actions', 
                                 'GCA': 'goal_creating_actions'}, inplace=True)
 
     stats_2018 = pd.concat([data_2018_std, data_2018_def, data_2018_gca], axis = 1)
 
-    data_2018_gk = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2018/2018-gk.txt")
-    data_2018_gk = add_country_id_column(data_2018_gk)
-    data_2018_gk_with_player_id = add_player_id_column(data_2018_gk)
+    data_2018_gk = pd.read_csv("./datasets/2018/2018-gk.txt")
+    data_2018_gk = add_country_id_column(database, data_2018_gk)
+    data_2018_gk_with_player_id = add_player_id_column(database, data_2018_gk)
     data_2018_gk_with_player_id = data_2018_gk_with_player_id.filter(['player_id', 'GA', 'SoTA', 'Saves', 'PKatt', 'PKsv'])
     data_2018_gk_with_player_id.rename(columns={'PKatt': 'def_penalties_attempts', 
                                 'GA': 'goals_against', 
@@ -222,15 +223,15 @@ def populate_2018_stats(database):
     insert_dataframe_values_to_table(database, stats_2018_complete, 'players_stats_in_season')
 
 def populate_2019_stats(database):
-    data_2019_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2019/2019-std.txt")
-    data_2019_std = add_country_id_column(data_2019_std)
-    data_2019_std_with_player_id = add_player_id_column(data_2019_std)
-    data_2019_std_with_team_id = add_team_id_column(data_2019_std_with_player_id)
+    data_2019_std = pd.read_csv("./datasets/2019/2019-std.txt")
+    data_2019_std = add_country_id_column(database, data_2019_std)
+    data_2019_std_with_player_id = add_player_id_column(database, data_2019_std)
+    data_2019_std_with_team_id = add_team_id_column(database, data_2019_std_with_player_id)
     data_2019_std_with_team_id['year'] = 2019
 
     data_2019_players_seasons = data_2019_std_with_team_id.filter(['player_id', 'team_id', 'year'])
     # Insert player season
-    insert_dataframe_values_to_table(data_2019_players_seasons, 'players_seasons')
+    insert_dataframe_values_to_table(database, data_2019_players_seasons, 'players_seasons')
 
     data_2019_std['positions'] = data_2019_std_with_team_id['Pos'].map(positions_dict)
 
@@ -246,7 +247,7 @@ def populate_2019_stats(database):
                                 'CrdY': 'yellow_cards',
                                 'CrdR': 'red_cards'}, inplace=True)
 
-    data_2019_def = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2019/2019-def.txt")
+    data_2019_def = pd.read_csv("./datasets/2019/2019-def.txt")
     data_2019_def = data_2019_def.filter(['Att 3rd', 'Mid 3rd', 'Def 3rd', 'Blocks', 'Int'])
     data_2019_def.rename(columns={'Att 3rd': 'offensive_tackles', 
                                 'Mid 3rd': 'midfield_tackles',
@@ -254,16 +255,16 @@ def populate_2019_stats(database):
                                 'Blocks': 'blocks',
                                 'Int': 'interceptions'}, inplace=True)
 
-    data_2019_gca = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2019/2019-gca.txt")
+    data_2019_gca = pd.read_csv("./datasets/2019/2019-gca.txt")
     data_2019_gca = data_2019_gca.filter(['SCA', 'GCA'])
     data_2019_gca.rename(columns={'SCA': 'shot_creating_actions', 
                                 'GCA': 'goal_creating_actions'}, inplace=True)
 
     stats_2019 = pd.concat([data_2019_std, data_2019_def, data_2019_gca], axis = 1)
 
-    data_2019_gk = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2019/2019-gk.txt")
-    data_2019_gk = add_country_id_column(data_2019_gk)
-    data_2019_gk_with_player_id = add_player_id_column(data_2019_gk)
+    data_2019_gk = pd.read_csv("./datasets/2019/2019-gk.txt")
+    data_2019_gk = add_country_id_column(database, data_2019_gk)
+    data_2019_gk_with_player_id = add_player_id_column(database, data_2019_gk)
     data_2019_gk_with_player_id = data_2019_gk_with_player_id.filter(['player_id', 'GA', 'SoTA', 'Saves', 'PKatt', 'PKsv'])
     data_2019_gk_with_player_id.rename(columns={'PKatt': 'def_penalties_attempts', 
                                 'GA': 'goals_against', 
@@ -279,15 +280,15 @@ def populate_2019_stats(database):
     insert_dataframe_values_to_table(database, stats_2019_complete, 'players_stats_in_season')
 
 def populate_2020_stats(database):
-    data_2020_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2020/2020-std.txt")
-    data_2020_std = add_country_id_column(data_2020_std)
-    data_2020_std_with_player_id = add_player_id_column(data_2020_std)
-    data_2020_std_with_team_id = add_team_id_column(data_2020_std_with_player_id)
+    data_2020_std = pd.read_csv("./datasets/2020/2020-std.txt")
+    data_2020_std = add_country_id_column(database, data_2020_std)
+    data_2020_std_with_player_id = add_player_id_column(database, data_2020_std)
+    data_2020_std_with_team_id = add_team_id_column(database, data_2020_std_with_player_id)
     data_2020_std_with_team_id['year'] = 2020
 
     data_2020_players_seasons = data_2020_std_with_team_id.filter(['player_id', 'team_id', 'year'])
     # Insert player season
-    insert_dataframe_values_to_table(data_2020_players_seasons, 'players_seasons')
+    insert_dataframe_values_to_table(database, data_2020_players_seasons, 'players_seasons')
 
     data_2020_std['positions'] = data_2020_std_with_team_id['Pos'].map(positions_dict)
 
@@ -303,7 +304,7 @@ def populate_2020_stats(database):
                                 'CrdY': 'yellow_cards',
                                 'CrdR': 'red_cards'}, inplace=True)
 
-    data_2020_def = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2020/2020-def.txt")
+    data_2020_def = pd.read_csv("./datasets/2020/2020-def.txt")
     data_2020_def = data_2020_def.filter(['Att 3rd', 'Mid 3rd', 'Def 3rd', 'Blocks', 'Int'])
     data_2020_def.rename(columns={'Att 3rd': 'offensive_tackles', 
                                 'Mid 3rd': 'midfield_tackles',
@@ -311,16 +312,16 @@ def populate_2020_stats(database):
                                 'Blocks': 'blocks',
                                 'Int': 'interceptions'}, inplace=True)
 
-    data_2020_gca = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2020/2020-gca.txt")
+    data_2020_gca = pd.read_csv("./datasets/2020/2020-gca.txt")
     data_2020_gca = data_2020_gca.filter(['SCA', 'GCA'])
     data_2020_gca.rename(columns={'SCA': 'shot_creating_actions', 
                                 'GCA': 'goal_creating_actions'}, inplace=True)
 
     stats_2020 = pd.concat([data_2020_std, data_2020_def, data_2020_gca], axis = 1)
 
-    data_2020_gk = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2020/2020-gk.txt")
-    data_2020_gk = add_country_id_column(data_2020_gk)
-    data_2020_gk_with_player_id = add_player_id_column(data_2020_gk)
+    data_2020_gk = pd.read_csv("./datasets/2020/2020-gk.txt")
+    data_2020_gk = add_country_id_column(database, data_2020_gk)
+    data_2020_gk_with_player_id = add_player_id_column(database, data_2020_gk)
     data_2020_gk_with_player_id = data_2020_gk_with_player_id.filter(['player_id', 'GA', 'SoTA', 'Saves', 'PKatt', 'PKsv'])
     data_2020_gk_with_player_id.rename(columns={'PKatt': 'def_penalties_attempts', 
                                 'GA': 'goals_against', 
@@ -336,15 +337,15 @@ def populate_2020_stats(database):
     insert_dataframe_values_to_table(database, stats_2020_complete, 'players_stats_in_season')
 
 def populate_2021_stats(database):
-    data_2021_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2021/2021-std.txt")
-    data_2021_std = add_country_id_column(data_2021_std)
-    data_2021_std_with_player_id = add_player_id_column(data_2021_std)
-    data_2021_std_with_team_id = add_team_id_column(data_2021_std_with_player_id)
+    data_2021_std = pd.read_csv("./datasets/2021/2021-std.txt")
+    data_2021_std = add_country_id_column(database, data_2021_std)
+    data_2021_std_with_player_id = add_player_id_column(database, data_2021_std)
+    data_2021_std_with_team_id = add_team_id_column(database, data_2021_std_with_player_id)
     data_2021_std_with_team_id['year'] = 2021
 
     data_2021_players_seasons = data_2021_std_with_team_id.filter(['player_id', 'team_id', 'year'])
     # Insert player season
-    insert_dataframe_values_to_table(data_2021_players_seasons, 'players_seasons')
+    insert_dataframe_values_to_table(database, data_2021_players_seasons, 'players_seasons')
 
     data_2021_std['positions'] = data_2021_std_with_team_id['Pos'].map(positions_dict)
 
@@ -360,7 +361,7 @@ def populate_2021_stats(database):
                                 'CrdY': 'yellow_cards',
                                 'CrdR': 'red_cards'}, inplace=True)
 
-    data_2021_def = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2021/2021-def.txt")
+    data_2021_def = pd.read_csv("./datasets/2021/2021-def.txt")
     data_2021_def = data_2021_def.filter(['Att 3rd', 'Mid 3rd', 'Def 3rd', 'Blocks', 'Int'])
     data_2021_def.rename(columns={'Att 3rd': 'offensive_tackles', 
                                 'Mid 3rd': 'midfield_tackles',
@@ -368,16 +369,16 @@ def populate_2021_stats(database):
                                 'Blocks': 'blocks',
                                 'Int': 'interceptions'}, inplace=True)
 
-    data_2021_gca = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2021/2021-gca.txt")
+    data_2021_gca = pd.read_csv("./datasets/2021/2021-gca.txt")
     data_2021_gca = data_2021_gca.filter(['SCA', 'GCA'])
     data_2021_gca.rename(columns={'SCA': 'shot_creating_actions', 
                                 'GCA': 'goal_creating_actions'}, inplace=True)
 
     stats_2021 = pd.concat([data_2021_std, data_2021_def, data_2021_gca], axis = 1)
 
-    data_2021_gk = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2021/2021-gk.txt")
-    data_2021_gk = add_country_id_column(data_2021_gk)
-    data_2021_gk_with_player_id = add_player_id_column(data_2021_gk)
+    data_2021_gk = pd.read_csv("./datasets/2021/2021-gk.txt")
+    data_2021_gk = add_country_id_column(database, data_2021_gk)
+    data_2021_gk_with_player_id = add_player_id_column(database, data_2021_gk)
     data_2021_gk_with_player_id = data_2021_gk_with_player_id.filter(['player_id', 'GA', 'SoTA', 'Saves', 'PKatt', 'PKsv'])
     data_2021_gk_with_player_id.rename(columns={'PKatt': 'def_penalties_attempts', 
                                 'GA': 'goals_against', 
@@ -393,15 +394,15 @@ def populate_2021_stats(database):
     insert_dataframe_values_to_table(database, stats_2021_complete, 'players_stats_in_season')
 
 def populate_2022_stats(database):
-    data_2022_std = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2022/2022-std.txt")
-    data_2022_std = add_country_id_column(data_2022_std)
-    data_2022_std_with_player_id = add_player_id_column(data_2022_std)
-    data_2022_std_with_team_id = add_team_id_column(data_2022_std_with_player_id)
+    data_2022_std = pd.read_csv("./datasets/2022/2022-std.txt")
+    data_2022_std = add_country_id_column(database, data_2022_std)
+    data_2022_std_with_player_id = add_player_id_column(database, data_2022_std)
+    data_2022_std_with_team_id = add_team_id_column(database, data_2022_std_with_player_id)
     data_2022_std_with_team_id['year'] = 2022
 
     data_2022_players_seasons = data_2022_std_with_team_id.filter(['player_id', 'team_id', 'year'])
     # Insert player season
-    insert_dataframe_values_to_table(data_2022_players_seasons, 'players_seasons')
+    insert_dataframe_values_to_table(database, data_2022_players_seasons, 'players_seasons')
 
     data_2022_std['positions'] = data_2022_std_with_team_id['Pos'].map(positions_dict)
 
@@ -417,7 +418,7 @@ def populate_2022_stats(database):
                                 'CrdY': 'yellow_cards',
                                 'CrdR': 'red_cards'}, inplace=True)
 
-    data_2022_def = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2022/2022-def.txt")
+    data_2022_def = pd.read_csv("./datasets/2022/2022-def.txt")
     data_2022_def = data_2022_def.filter(['Att 3rd', 'Mid 3rd', 'Def 3rd', 'Blocks', 'Int'])
     data_2022_def.rename(columns={'Att 3rd': 'offensive_tackles', 
                                 'Mid 3rd': 'midfield_tackles',
@@ -425,16 +426,16 @@ def populate_2022_stats(database):
                                 'Blocks': 'blocks',
                                 'Int': 'interceptions'}, inplace=True)
 
-    data_2022_gca = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2022/2022-gca.txt")
+    data_2022_gca = pd.read_csv("./datasets/2022/2022-gca.txt")
     data_2022_gca = data_2022_gca.filter(['SCA', 'GCA'])
     data_2022_gca.rename(columns={'SCA': 'shot_creating_actions', 
                                 'GCA': 'goal_creating_actions'}, inplace=True)
 
     stats_2022 = pd.concat([data_2022_std, data_2022_def, data_2022_gca], axis = 1)
 
-    data_2022_gk = pd.read_csv("/content/drive/MyDrive/Projeto - Banco de Dados/Files/2022/2022-gk.txt")
-    data_2022_gk = add_country_id_column(data_2022_gk)
-    data_2022_gk_with_player_id = add_player_id_column(data_2022_gk)
+    data_2022_gk = pd.read_csv("./datasets/2022/2022-gk.txt")
+    data_2022_gk = add_country_id_column(database, data_2022_gk)
+    data_2022_gk_with_player_id = add_player_id_column(database, data_2022_gk)
     data_2022_gk_with_player_id = data_2022_gk_with_player_id.filter(['player_id', 'GA', 'SoTA', 'Saves', 'PKatt', 'PKsv'])
     data_2022_gk_with_player_id.rename(columns={'PKatt': 'def_penalties_attempts', 
                                 'GA': 'goals_against', 

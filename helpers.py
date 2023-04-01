@@ -1,5 +1,6 @@
-import psycopg2
+import psycopg2.extras
 from constants import alternative_alpha_3
+import pandas.io.sql as psql
 from psycopg2.extensions import AsIs
 
 # Function to insert dataframe data into table
@@ -31,8 +32,10 @@ def get_country_id_by_alpha3(countries, name):
     country_id_row = countries[countries['alpha_3_code'] == alternative_alpha_3.get(name)]['id'].iloc[0]
     return country_id_row
 
-def add_country_id_column(players_df):
-    players_df['country_id'] = players_df.apply(lambda x: get_country_id_by_alpha3(x['Nation'][3:].strip()), axis=1)
+def add_country_id_column(database, players_df):
+    countries = countries = psql.read_sql_query('select * from countries', database.connection)
+
+    players_df['country_id'] = players_df.apply(lambda x: get_country_id_by_alpha3(countries, x['Nation'][3:].strip()), axis=1)
     return players_df
 
 def addapt_numpy_float64(numpy_float64):
