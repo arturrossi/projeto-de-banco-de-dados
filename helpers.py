@@ -20,6 +20,7 @@ def insert_dataframe_values_to_table(database, df, table_name):
     cursor = database.connection.cursor()
     psycopg2.extras.execute_batch(cursor, insert_stmt, df.values)
     database.connection.commit()
+    print("Inserted dataframe batch on database...")
     cursor.close()
 
 # Useful functions to clean players data

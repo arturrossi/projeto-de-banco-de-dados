@@ -148,6 +148,21 @@ def get_leagues_dataframe(database):
 
     return leagues_df
 
+def get_top_10_yellow_cards(database):
+    countries = psql.read_sql_query('select p.name, ps.year, t.name as team_name, yellow_cards from players_stats_in_season pss JOIN players_seasons ps ON pss.player_id = ps.player_id JOIN players p ON ps.player_id = p.id JOIN teams t ON t.id = ps.team_id ORDER BY yellow_cards desc limit 10', database.connection)
+    
+    return countries    
+
+def get_top_10_red_cards(database):
+    countries = psql.read_sql_query('select p.name, ps.year, t.name as team_name, red_cards from players_stats_in_season pss JOIN players_seasons ps ON pss.player_id = ps.player_id JOIN players p ON ps.player_id = p.id JOIN teams t ON t.id = ps.team_id ORDER BY red_cards desc limit 10', database.connection)
+    
+    return countries    
+
+def get_youngest_in_2021(database):
+    countries = psql.read_sql_query('select distinct p.name, ps.year, p.birth_year, t.name as team_name from players_stats_in_season pss JOIN players_seasons ps ON pss.player_id = ps.player_id JOIN players p ON ps.player_id = p.id JOIN teams t ON t.id = ps.team_id ORDER BY p.birth_year desc limit 10', database.connection)
+    
+    return countries    
+
 def populate_leagues_data(database):
     leagues_df =get_leagues_dataframe(database)
     insert_dataframe_values_to_table(database, leagues_df, "leagues")
@@ -174,12 +189,12 @@ def populate_2018_stats(database):
 
     data_2018_players_seasons = data_2018_std_with_team_id.filter(['player_id', 'team_id', 'year'])
     # Insert player season
-    insert_dataframe_values_to_table(database, data_2018_players_seasons, 'players_seasons')
+    # insert_dataframe_values_to_table(database, data_2018_players_seasons, 'players_seasons')
 
     data_2018_std['positions'] = data_2018_std_with_team_id['Pos'].map(positions_dict)
 
     # Insert positions
-    data_2018_std.apply(lambda x: insert_player_position(x['player_id'], x['team_id'], x['year'], x['positions']), axis=1)
+    # data_2018_std.apply(lambda x: insert_player_position(database, x['player_id'], x['team_id'], x['year'], x['positions']), axis=1)
 
     data_2018_std = data_2018_std.filter(['player_id', 'team_id', 'Min', 'G-PK', 'PK', 'PKatt', 'Ast', 'CrdY', 'CrdR'])
     data_2018_std.rename(columns={'Min': 'minutes_played',
@@ -236,7 +251,7 @@ def populate_2019_stats(database):
     data_2019_std['positions'] = data_2019_std_with_team_id['Pos'].map(positions_dict)
 
     # Insert positions
-    data_2019_std.apply(lambda x: insert_player_position(x['player_id'], x['team_id'], x['year'], x['positions']), axis=1)
+    data_2019_std.apply(lambda x: insert_player_position(database, x['player_id'], x['team_id'], x['year'], x['positions']), axis=1)
 
     data_2019_std = data_2019_std.filter(['player_id', 'team_id', 'Min', 'G-PK', 'PK', 'PKatt', 'Ast', 'CrdY', 'CrdR'])
     data_2019_std.rename(columns={'Min': 'minutes_played',
@@ -293,7 +308,7 @@ def populate_2020_stats(database):
     data_2020_std['positions'] = data_2020_std_with_team_id['Pos'].map(positions_dict)
 
     # Insert positions
-    data_2020_std.apply(lambda x: insert_player_position(x['player_id'], x['team_id'], x['year'], x['positions']), axis=1)
+    data_2020_std.apply(lambda x: insert_player_position(database, x['player_id'], x['team_id'], x['year'], x['positions']), axis=1)
 
     data_2020_std = data_2020_std.filter(['player_id', 'team_id', 'Min', 'G-PK', 'PK', 'PKatt', 'Ast', 'CrdY', 'CrdR'])
     data_2020_std.rename(columns={'Min': 'minutes_played',
@@ -350,7 +365,7 @@ def populate_2021_stats(database):
     data_2021_std['positions'] = data_2021_std_with_team_id['Pos'].map(positions_dict)
 
     # Insert positions
-    data_2021_std.apply(lambda x: insert_player_position(x['player_id'], x['team_id'], x['year'], x['positions']), axis=1)
+    data_2021_std.apply(lambda x: insert_player_position(database, x['player_id'], x['team_id'], x['year'], x['positions']), axis=1)
 
     data_2021_std = data_2021_std.filter(['player_id', 'team_id', 'Min', 'G-PK', 'PK', 'PKatt', 'Ast', 'CrdY', 'CrdR'])
     data_2021_std.rename(columns={'Min': 'minutes_played',
@@ -407,7 +422,7 @@ def populate_2022_stats(database):
     data_2022_std['positions'] = data_2022_std_with_team_id['Pos'].map(positions_dict)
 
     # Insert positions
-    data_2022_std.apply(lambda x: insert_player_position(x['player_id'], x['team_id'], x['year'], x['positions']), axis=1)
+    data_2022_std.apply(lambda x: insert_player_position(database, x['player_id'], x['team_id'], x['year'], x['positions']), axis=1)
 
     data_2022_std = data_2022_std.filter(['player_id', 'team_id', 'Min', 'G-PK', 'PK', 'PKatt', 'Ast', 'CrdY', 'CrdR'])
     data_2022_std.rename(columns={'Min': 'minutes_played',
