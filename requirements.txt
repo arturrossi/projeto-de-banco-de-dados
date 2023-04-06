@@ -2,3 +2,4 @@ pymysql
 psycopg2
 pandas
 python-dotenv
+seaborn

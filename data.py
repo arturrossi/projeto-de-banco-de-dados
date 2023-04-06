@@ -149,19 +149,139 @@ def get_leagues_dataframe(database):
     return leagues_df
 
 def get_top_10_yellow_cards(database):
-    countries = psql.read_sql_query('select p.name, ps.year, t.name as team_name, yellow_cards from players_stats_in_season pss JOIN players_seasons ps ON pss.player_id = ps.player_id JOIN players p ON ps.player_id = p.id JOIN teams t ON t.id = ps.team_id ORDER BY yellow_cards desc limit 10', database.connection)
+    countries = psql.read_sql_query("""
+    SELECT p.name, ps.year, t.name as team_name, yellow_cards 
+    FROM players_stats_in_season pss 
+    JOIN players_seasons ps ON pss.player_id = ps.player_id 
+    JOIN players p ON ps.player_id = p.id 
+    JOIN teams t ON t.id = ps.team_id 
+    ORDER BY yellow_cards 
+    DESC LIMIT 10""", database.connection)
     
     return countries    
 
 def get_top_10_red_cards(database):
-    countries = psql.read_sql_query('select p.name, ps.year, t.name as team_name, red_cards from players_stats_in_season pss JOIN players_seasons ps ON pss.player_id = ps.player_id JOIN players p ON ps.player_id = p.id JOIN teams t ON t.id = ps.team_id ORDER BY red_cards desc limit 10', database.connection)
+    countries = psql.read_sql_query("""
+    SELECT p.name, ps.year, t.name as team_name, red_cards 
+    FROM players_stats_in_season pss 
+    JOIN players_seasons ps ON pss.player_id = ps.player_id 
+    JOIN players p ON ps.player_id = p.id 
+    JOIN teams t ON t.id = ps.team_id 
+    ORDER BY red_cards 
+    DESC LIMIT 10""", database.connection)
     
     return countries    
 
 def get_youngest_in_2021(database):
-    countries = psql.read_sql_query('select distinct p.name, ps.year, p.birth_year, t.name as team_name from players_stats_in_season pss JOIN players_seasons ps ON pss.player_id = ps.player_id JOIN players p ON ps.player_id = p.id JOIN teams t ON t.id = ps.team_id ORDER BY p.birth_year desc limit 10', database.connection)
+    countries = psql.read_sql_query("""
+    SELECT distinct p.name, ps.year, p.birth_year, t.name as team_name 
+    FROM players_stats_in_season pss 
+    JOIN players_seasons ps ON pss.player_id = ps.player_id 
+    JOIN players p ON ps.player_id = p.id 
+    JOIN teams t ON t.id = ps.team_id 
+    WHERE ps.year = 2021 AND pss.year = 2021 
+    ORDER BY p.birth_year 
+    DESC LIMIT 10""", database.connection)
     
     return countries    
+
+def get_top_goals_against_2020(database):
+    countries = psql.read_sql_query("""
+    SELECT p.name, ps.year, pss.goals_against, t.name as team_name 
+    FROM players_stats_in_season pss 
+    JOIN players_seasons ps ON pss.player_id = ps.player_id 
+    JOIN players p ON ps.player_id = p.id 
+    JOIN teams t ON t.id = ps.team_id 
+    WHERE ps.year = 2020 AND pss.year = 2020 
+    ORDER BY pss.goals_against 
+    DESC LIMIT 10""", database.connection)
+    
+    return countries
+
+def get_top_shots_on_target_2019(database):
+    countries = psql.read_sql_query("""
+    SELECT p.name, ps.year, pss.shots_on_target, t.name as team_name 
+    FROM players_stats_in_season pss 
+    JOIN players_seasons ps ON pss.player_id = ps.player_id 
+    JOIN players p ON ps.player_id = p.id 
+    JOIN teams t ON t.id = ps.team_id 
+    WHERE ps.year = 2019 AND pss.year = 2019 
+    ORDER BY pss.shots_on_target 
+    DESC LIMIT 10""", database.connection)
+    
+    return countries
+
+def get_top_assists_2022(database):
+    countries = psql.read_sql_query("""
+    SELECT p.id, p.name, ps.year, pss.year, pss.assists, t.name as team_name 
+    FROM players_stats_in_season pss 
+    JOIN players_seasons ps ON pss.player_id = ps.player_id 
+    JOIN players p ON ps.player_id = p.id 
+    JOIN teams t ON t.id = ps.team_id 
+    WHERE ps.year = 2022 AND pss.year = 2022 
+    ORDER BY pss.assists 
+    DESC LIMIT 10""", database.connection)
+    
+    return countries
+
+def get_top_minutes_played_2018(database):
+    countries = psql.read_sql_query("""
+    SELECT p.id, p.name as name, pos.name as position, pss.year, pss.minutes_played as minutes, t.name as team_name 
+    FROM players_stats_in_season pss 
+    JOIN players_seasons ps 
+    ON pss.player_id = ps.player_id 
+    JOIN players p 
+    ON ps.player_id = p.id 
+    JOIN players_positions_in_season pos_season 
+    ON p.id = pos_season.player_id AND pss.year = pos_season.year 
+    JOIN positions pos ON pos_season.position_id = pos.id 
+    JOIN teams t ON t.id = ps.team_id 
+    WHERE ps.year = 2018 AND pss.year = 2018 
+    ORDER BY pss.minutes_played 
+    DESC LIMIT 10""", database.connection)
+    
+    return countries
+    
+def get_avg_age_by_league(database):
+    query = psql.read_sql_query("""
+    SELECT AVG(ps.year - p.birth_year) as player_age, l.name as league, ps.year
+    FROM players_seasons ps
+    JOIN players p ON ps.player_id = p.id
+    JOIN teams t ON t.id = ps.team_id
+    JOIN leagues l ON l.id = t.league_id
+    GROUP BY ps.year, l.name
+    ORDER BY ps.year, l.name
+    """, database.connection)
+
+    return query
+
+def get_total_goals_by_league(database):
+    query = psql.read_sql_query("""
+    SELECT SUM(pss.non_penalty_goals + pss.penalty_goals) as total_goals, l.name as league, pss.year
+    FROM players_stats_in_season pss
+    JOIN teams t ON t.id = pss.team_id
+    JOIN leagues l ON l.id = t.league_id
+    GROUP BY pss.year, l.name
+    ORDER BY pss.year, l.name
+    """, database.connection)
+
+    return query
+
+def get_top_scorer_by_year_league(database):
+    query = psql.read_sql_query("""
+    WITH top_scorers AS(
+    SELECT MAX(pss.non_penalty_goals + pss.penalty_goals) as total_goals, pss.player_id, l.name as league, pss.year
+    FROM players_stats_in_season pss 
+    JOIN players p ON pss.player_id = p.id 
+    JOIN teams t ON t.id = pss.team_id
+    JOIN leagues l ON l.id = t.league_id
+    GROUP BY pss.year, l.name
+    ORDER BY pss.year, l.name)
+    SELECT name
+    FROM players pl
+    JOIN top_scorers ON top_scorers.id = pl.id""", database.connection)
+
+    return query
 
 def populate_leagues_data(database):
     leagues_df =get_leagues_dataframe(database)
